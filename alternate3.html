@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Game Application</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 30px 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+    }
+
+    .question {
+      font-size: 1.2rem;
+      margin: 15px 0;
+      font-weight: 500;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    label {
+      background: rgba(255,255,255,0.15);
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    label:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.03);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00f2fe, #4facfe);
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+
+    .score-section {
+      font-size: 1.2rem;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    footer {
+      margin-top: 25px;
+      font-size: 0.8rem;
+      color: #ddd;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5rem; }
+      .question { font-size: 1rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🧠 Quiz Game Application</h1>
+
+    <!-- Start Screen -->
+    <div id="start-screen">
+      <p>Test your knowledge with this fun and interactive quiz!</p>
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Quiz Section -->
+    <div id="quiz-section" class="hidden">
+      <div class="question" id="question"></div>
+      <div class="options" id="options"></div>
+      <button onclick="nextQuestion()">Next</button>
+    </div>
+
+    <!-- Result Section -->
+    <div id="result-screen" class="hidden">
+      <h2>🎉 Quiz Completed!</h2>
+      <p class="score-section">Your Score: <span id="score"></span> / <span id="total"></span></p>
+      <button onclick="restartQuiz()">Play Again</button>
+    </div>
+  </div>
+
+  <footer>SkillCraft Technology | Task 03</footer>
+
+  <script>
+    const quizData = [
+      {
+        type: "single",
+        question: "What is the capital of France?",
+        options: ["Paris", "Rome", "Berlin", "Madrid"],
+        answer: "Paris"
+      },
+      {
+        type: "multi",
+        question: "Which of these are programming languages?",
+        options: ["Python", "HTML", "Java", "CSS"],
+        answer: ["Python", "Java"]
+      },
+      {
+        type: "fill",
+        question: "Fill in the blank: The Sun rises in the ____.",
+        answer: "east"
+      },
+      {
+        type: "single",
+        question: "Who developed the theory of relativity?",
+        options: ["Newton", "Einstein", "Tesla", "Edison"],
+        answer: "Einstein"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const startScreen = document.getElementById("start-screen");
+    const quizSection = document.getElementById("quiz-section");
+    const resultScreen = document.getElementById("result-screen");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const scoreEl = document.getElementById("score");
+    const totalEl = document.getElementById("total");
+
+    function startQuiz() {
+      startScreen.classList.add("hidden");
+      quizSection.classList.remove("hidden");
+      currentQuestion = 0;
+      score = 0;
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = quizData[currentQuestion];
+      questionEl.textContent = `Q${currentQuestion + 1}: ${q.question}`;
+      optionsEl.innerHTML = "";
+
+      if (q.type === "single") {
+        q.options.forEach(opt => {
+          optionsEl.innerHTML += `
+            <label>
+              <input type="radio" name="answer" value="${opt}"> ${opt}
+            </label>`;
+        });
+      } 
+      else if (q.type === "multi") {
+        q.options.forEach(opt => {
+          optionsEl.innerHTML += `
+            <label>
+              <input type="checkbox" name="answer" value="${opt}"> ${opt}
+            </label>`;
+        });
+      } 
+      else if (q.type === "fill") {
+        optionsEl.innerHTML = `<input type="text" id="fillAnswer" placeholder="Type your answer here...">`;
+      }
+    }
+
+    function nextQuestion() {
+      const q = quizData[currentQuestion];
+      let userAnswer;
+
+      if (q.type === "single") {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if (!selected) return alert("Please select an answer!");
+        userAnswer = selected.value;
+        if (userAnswer === q.answer) score++;
+      } 
+      else if (q.type === "multi") {
+        const selected = [...document.querySelectorAll('input[name="answer"]:checked')].map(e => e.value);
+        if (selected.length === 0) return alert("Select at least one option!");
+        if (JSON.stringify(selected.sort()) === JSON.stringify(q.answer.sort())) score++;
+      } 
+      else if (q.type === "fill") {
+        userAnswer = document.getElementById("fillAnswer").value.trim().toLowerCase();
+        if (!userAnswer) return alert("Please enter your answer!");
+        if (userAnswer === q.answer.toLowerCase()) score++;
+      }
+
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      quizSection.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+      scoreEl.textContent = score;
+      totalEl.textContent = quizData.length;
+    }
+
+    function restartQuiz() {
+      resultScreen.classList.add("hidden");
+      startScreen.classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
