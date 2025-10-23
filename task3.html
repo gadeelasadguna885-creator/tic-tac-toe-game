@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tic-Tac-Toe — SkillCraft</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1: #0f1724;
+      --bg2: #0b1220;
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --accent: #7c5cff;
+      --accent-2: #00e0c6;
+      --win: #21d07a;
+      --lose: #ff6b6b;
+      --muted: rgba(255,255,255,0.55);
+      --glass-border: rgba(255,255,255,0.06);
+      --glow: 0 8px 30px rgba(124,92,255,0.12);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:'Poppins',system-ui,Segoe UI,Roboto,Arial;
+      background: radial-gradient(1000px 600px at 10% 10%, rgba(124,92,255,0.08), transparent),
+                  linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:#eef2ff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .app {
+      width:100%;
+      max-width:1000px;
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:28px;
+      align-items:start;
+      padding:28px;
+    }
+
+    /* Responsive */
+    @media (max-width:880px){
+      .app{ grid-template-columns: 1fr; padding:20px; gap:18px; }
+    }
+
+    .panel {
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:18px;
+      padding:20px;
+      border:1px solid var(--glass-border);
+      box-shadow:var(--glow);
+      backdrop-filter: blur(6px) saturate(120%);
+    }
+
+    .left {
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .title {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .logo {
+      width:56px;
+      height:56px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:white;
+      font-weight:700;
+      font-size:20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4), inset 0 -4px 12px rgba(255,255,255,0.06);
+    }
+
+    h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:0.4px;
+    }
+    p.lead { margin:0; color:var(--muted); font-size:13px; }
+
+    .controls {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:6px;
+    }
+
+    .segmented {
+      background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01));
+      padding:6px;
+      border-radius:12px;
+      display:inline-flex;
+      gap:6px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .segmented button {
+      border:0;
+      background:transparent;
+      padding:8px 14px;
+      border-radius:8px;
+      color:var(--muted);
+      font-weight:600;
+      cursor:pointer;
+      transition: all .18s ease;
+      font-size:13px;
+    }
+
+    .segmented button.active{
+      background:linear-gradient(90deg, rgba(124,92,255,0.16), rgba(0,224,198,0.06));
+      color: white;
+      box-shadow: 0 6px 20px rgba(124,92,255,0.11);
+    }
+
+    .scoreboard {
+      display:flex;
+      gap:12px;
+      margin-top:8px;
+      justify-content:space-between;
+    }
+
+    .score {
+      background:var(--glass);
+      padding:10px;
+      border-radius:12px;
+      flex:1;
+      text-align:center;
+      border:1px solid var(--glass-border);
+    }
+    .score .who { font-size:12px; color:var(--muted); margin-bottom:4px; }
+    .score .val { font-size:20px; font-weight:700; }
+
+    /* Board area */
+    .board-wrap {
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .board {
+      width:100%;
+      max-width:520px;
+      aspect-ratio:1/1;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      padding:12px;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid var(--glass-border);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+
+    .cell {
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      font-size: clamp(28px, 7vw, 56px);
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .12s ease, background .12s ease;
+      border:1px solid rgba(255,255,255,0.02);
+      color: rgba(255,255,255,0.9);
+      position:relative;
+      overflow:hidden;
+    }
+    .cell:hover { transform: translateY(-6px) scale(1.02); }
+    .cell.disabled { cursor:not-allowed; opacity:0.92; transform:none; }
+
+    .cell.x { color: #ffd166; text-shadow: 0 6px 18px rgba(255, 209, 102, 0.12); }
+    .cell.o { color: #83e9d2; text-shadow: 0 6px 18px rgba(131, 233, 210, 0.12); }
+
+    /* winning line highlight */
+    .cell.win {
+      box-shadow: 0 8px 30px rgba(124,92,255,0.12), inset 0 -6px 24px rgba(0,0,0,0.2);
+      transform: translateY(-4px);
+      border:1px solid rgba(255,255,255,0.06);
+    }
+
+    .status-bar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    .status {
+      padding:10px 12px;
+      border-radius:12px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008));
+      border:1px solid rgba(255,255,255,0.03);
+      font-weight:600;
+      color:var(--muted);
+    }
+
+    .controls-bottom {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .btn {
+      padding:10px 14px;
+      border-radius:10px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:0.3px;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:white;
+      box-shadow: 0 10px 28px rgba(124,92,255,0.14);
+    }
+    .btn.ghost{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .btn:active{ transform:translateY(2px) }
+
+    /* small helpers */
+    .muted { color:var(--muted); font-size:13px; }
+    .flex { display:flex; align-items:center; gap:8px; }
+
+    footer.attribution {
+      margin-top:12px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      grid-column: 1 / -1;
+    }
+
+    /* subtle animations */
+    .pulse {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0% { transform:scale(1); opacity:1 }
+      50% { transform:scale(1.02); opacity:0.95 }
+      100% { transform:scale(1); opacity:1 }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="app" role="main" aria-labelledby="app-title">
+
+    <!-- LEFT PANEL: Controls & Score -->
+    <section class="panel left" aria-label="Controls and scoreboard">
+      <div class="title">
+        <div class="logo">TTT</div>
+        <div>
+          <h1 id="app-title">Tic-Tac-Toe</h1>
+          <p class="lead">Play local (2 players) or vs Computer — choose difficulty and start!</p>
+        </div>
+      </div>
+
+      <div class="controls" aria-hidden="false">
+        <div>
+          <div class="muted" style="margin-bottom:6px;">Mode</div>
+          <div class="segmented" role="tablist" aria-label="Game mode">
+            <button id="mode-2p" class="active" role="tab" aria-selected="true">2 Players</button>
+            <button id="mode-cpu" role="tab" aria-selected="false">Vs Computer</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="muted" style="margin-bottom:6px;">Difficulty</div>
+          <div class="segmented" aria-label="Difficulty">
+            <button id="diff-easy" class="active" role="radio" aria-checked="true">Easy</button>
+            <button id="diff-hard" role="radio" aria-checked="false">Hard</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="scoreboard" aria-hidden="false" style="margin-top:12px;">
+        <div class="score">
+          <div class="who">Player X</div>
+          <div class="val" id="score-x">0</div>
+        </div>
+        <div class="score">
+          <div class="who">Ties</div>
+          <div class="val" id="score-ties">0</div>
+        </div>
+        <div class="score">
+          <div class="who" id="who-o">Player O</div>
+          <div class="val" id="score-o">0</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;" class="muted">Tip: In Vs Computer mode you play as <strong>X</strong> and the Computer plays as <strong>O</strong>.</div>
+
+      <div style="margin-top:auto; display:flex; gap:8px; align-items:center;">
+        <button id="reset-scores" class="btn ghost" title="Reset scores">Reset scores</button>
+        <div style="flex:1"></div>
+        <button id="new-game" class="btn primary" title="Start new game">New Game</button>
+      </div>
+
+      <footer class="attribution">SkillCraft Technology — Tic-Tac-Toe task</footer>
+    </section>
+
+    <!-- RIGHT PANEL: Board & Status -->
+    <section class="panel board-wrap" aria-label="Game board area">
+      <div class="status-bar">
+        <div>
+          <div class="status" id="status">Turn: <strong id="turn">X</strong></div>
+        </div>
+
+        <div class="controls-bottom">
+          <div class="muted" id="difficulty-indicator">Difficulty: <strong>Easy</strong></div>
+          <button id="undo" class="btn ghost" title="Undo last move (only local)">Undo</button>
+        </div>
+      </div>
+
+      <div id="board" class="board" role="grid" aria-label="Tic Tac Toe board">
+        <!-- 9 cells -->
+        <div class="cell" data-index="0" role="button" aria-label="Cell 1"></div>
+        <div class="cell" data-index="1" role="button" aria-label="Cell 2"></div>
+        <div class="cell" data-index="2" role="button" aria-label="Cell 3"></div>
+
+        <div class="cell" data-index="3" role="button" aria-label="Cell 4"></div>
+        <div class="cell" data-index="4" role="button" aria-label="Cell 5"></div>
+        <div class="cell" data-index="5" role="button" aria-label="Cell 6"></div>
+
+        <div class="cell" data-index="6" role="button" aria-label="Cell 7"></div>
+        <div class="cell" data-index="7" role="button" aria-label="Cell 8"></div>
+        <div class="cell" data-index="8" role="button" aria-label="Cell 9"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /***** Game state & UI wiring *****/
+    const boardEl = document.getElementById('board');
+    const cells = Array.from(boardEl.querySelectorAll('.cell'));
+    const statusEl = document.getElementById('status');
+    const turnEl = document.getElementById('turn');
+    const newGameBtn = document.getElementById('new-game');
+    const resetScoresBtn = document.getElementById('reset-scores');
+    const undoBtn = document.getElementById('undo');
+    const scoreXEl = document.getElementById('score-x');
+    const scoreOEl = document.getElementById('score-o');
+    const scoreTiesEl = document.getElementById('score-ties');
+    const mode2pBtn = document.getElementById('mode-2p');
+    const modeCpuBtn = document.getElementById('mode-cpu');
+    const diffEasyBtn = document.getElementById('diff-easy');
+    const diffHardBtn = document.getElementById('diff-hard');
+    const difficultyIndicator = document.getElementById('difficulty-indicator');
+    const whoO = document.getElementById('who-o');
+
+    let board = Array(9).fill(null);   // 'X' | 'O' | null
+    let currentPlayer = 'X';
+    let gameOver = false;
+    let vsComputer = false;
+    let difficulty = 'easy'; // 'easy' | 'hard'
+    let scores = { X:0, O:0, ties:0 };
+    let history = []; // for undo (only local)
+
+    // winning combos
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8], // rows
+      [0,3,6],[1,4,7],[2,5,8], // cols
+      [0,4,8],[2,4,6]          // diags
+    ];
+
+    /* --- Utilities --- */
+    function setMode(vsCpu){
+      vsComputer = vsCpu;
+      mode2pBtn.classList.toggle('active', !vsCpu);
+      modeCpuBtn.classList.toggle('active', vsCpu);
+      mode2pBtn.setAttribute('aria-selected', String(!vsCpu));
+      modeCpuBtn.setAttribute('aria-selected', String(vsCpu));
+      whoO.textContent = vsCpu ? 'Computer (O)' : 'Player O';
+      // Reset board for mode switch
+      resetBoard();
+    }
+
+    function setDifficulty(d){
+      difficulty = d;
+      diffEasyBtn.classList.toggle('active', d === 'easy');
+      diffHardBtn.classList.toggle('active', d === 'hard');
+      diffEasyBtn.setAttribute('aria-checked', String(d === 'easy'));
+      diffHardBtn.setAttribute('aria-checked', String(d === 'hard'));
+      difficultyIndicator.innerHTML = `Difficulty: <strong>${d === 'easy' ? 'Easy' : 'Hard'}</strong>`;
+    }
+
+    function renderBoard(){
+      cells.forEach((cell, idx) => {
+        const val = board[idx];
+        cell.textContent = val ? val : '';
+        cell.classList.toggle('x', val === 'X');
+        cell.classList.toggle('o', val === 'O');
+        cell.classList.toggle('disabled', !!val || gameOver);
+      });
+      turnEl.textContent = currentPlayer;
+    }
+
+    function makeMove(idx, player, recordHistory = true){
+      if (gameOver || board[idx]) return false;
+      board[idx] = player;
+      if (recordHistory) history.push({ board: board.slice(), player });
+      renderBoard();
+      const result = checkGame();
+      if (result) handleResult(result);
+      else {
+        currentPlayer = (player === 'X') ? 'O' : 'X';
+        renderBoard();
+        if (!gameOver && vsComputer && currentPlayer === 'O'){
+          // slight delay for a nicer UX
+          setTimeout(() => computerPlay(), 300);
+        }
+      }
+      return true;
+    }
+
+    function checkGame(){
+      // return { winner: 'X'|'O' } or { draw:true } or null
+      for (const combo of wins){
+        const [a,b,c] = combo;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]){
+          return { winner: board[a], combo };
+        }
+      }
+      if (board.every(Boolean)) return { draw: true };
+      return null;
+    }
+
+    function handleResult(result){
+      gameOver = true;
+      if (result.winner){
+        statusEl.innerHTML = `Winner: <strong>${result.winner}</strong>`;
+        scores[result.winner] += 1;
+        highlightWinning(result.combo);
+      } else if (result.draw){
+        statusEl.innerHTML = `<strong>Draw</strong> — no winners`;
+        scores.ties += 1;
+      }
+      updateScores();
+    }
+
+    function highlightWinning(combo){
+      combo.forEach(i => cells[i].classList.add('win'));
+    }
+
+    function updateScores(){
+      scoreXEl.textContent = scores.X;
+      scoreOEl.textContent = scores.O;
+      scoreTiesEl.textContent = scores.ties;
+    }
+
+    function resetBoard(){
+      board = Array(9).fill(null);
+      currentPlayer = 'X';
+      gameOver = false;
+      history = [];
+      cells.forEach(c => c.classList.remove('win'));
+      statusEl.innerHTML = `Turn: <strong id="turn">${currentPlayer}</strong>`;
+      renderBoard();
+      // If vs computer and computer should start (we keep X as player), do nothing.
+    }
+
+    function newGame(){
+      resetBoard();
+    }
+
+    function resetScores(){
+      scores = { X:0, O:0, ties:0 };
+      updateScores();
+    }
+
+    /* --- Computer AI --- */
+    function computerPlay(){
+      if (gameOver) return;
+      let move;
+      if (difficulty === 'easy'){
+        const empties = board.map((v,i)=> v ? null : i).filter(v=>v!==null);
+        move = empties[Math.floor(Math.random()*empties.length)];
+      } else {
+        // minimax to pick best move (O is maximizing for itself)
+        move = minimaxRoot(board, 'O');
+      }
+      if (move !== undefined && move !== null) makeMove(move, 'O', true);
+    }
+
+    // minimax root wrapper returning index
+    function minimaxRoot(state, player){
+      let bestScore = -Infinity;
+      let bestMove = null;
+      const empties = state.map((v,i)=> v ? null : i).filter(v=>v!==null);
+      for (const idx of empties){
+        const copy = state.slice();
+        copy[idx] = player;
+        const score = minimax(copy, false);
+        if (score > bestScore){
+          bestScore = score;
+          bestMove = idx;
+        }
+      }
+      return bestMove;
+    }
+
+    // score values: +10 for computer win (O), -10 for player win (X), 0 for draw
+    function minimax(state, isMaximizing){
+      const result = evaluate(state);
+      if (result !== null) return result;
+      const player = isMaximizing ? 'O' : 'X';
+      const empties = state.map((v,i)=> v ? null : i).filter(v=>v!==null);
+      if (isMaximizing){
+        let best = -Infinity;
+        for (const idx of empties){
+          const copy = state.slice();
+          copy[idx] = player;
+          best = Math.max(best, minimax(copy, !isMaximizing));
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for (const idx of empties){
+          const copy = state.slice();
+          copy[idx] = player;
+          best = Math.min(best, minimax(copy, !isMaximizing));
+        }
+        return best;
+      }
+    }
+
+    // evaluate terminal states
+    function evaluate(state){
+      for (const combo of wins){
+        const [a,b,c] = combo;
+        if (state[a] && state[a] === state[b] && state[a] === state[c]){
+          if (state[a] === 'O') return +10;
+          if (state[a] === 'X') return -10;
+        }
+      }
+      if (state.every(Boolean)) return 0; // draw
+      return null; // non-terminal
+    }
+
+    /* --- Event wiring --- */
+    cells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        const idx = Number(cell.dataset.index);
+        if (board[idx] || gameOver) return;
+        // If vsComputer and it's computer's turn, prevent human clicking
+        if (vsComputer && currentPlayer === 'O') return;
+        makeMove(idx, currentPlayer, true);
+      });
+    });
+
+    // top controls
+    newGameBtn.addEventListener('click', newGame);
+    resetScoresBtn.addEventListener('click', () => {
+      if (confirm('Reset all scores?')) resetScores();
+    });
+    undoBtn.addEventListener('click', () => {
+      // only allowed for local mode and if there is history
+      if (vsComputer) {
+        alert('Undo is available only in 2 Players mode.');
+        return;
+      }
+      if (history.length <= 1) {
+        alert('Nothing to undo.');
+        return;
+      }
+      // remove last move
+      history.pop();
+      const last = history[history.length - 1];
+      board = last.board.slice();
+      currentPlayer = last.player === 'X' ? 'O' : 'X';
+      history.pop(); // align history with board state
+      gameOver = false;
+      cells.forEach(c => c.classList.remove('win'));
+      renderBoard();
+      statusEl.innerHTML = `Turn: <strong>${currentPlayer}</strong>`;
+    });
+
+    // mode buttons
+    mode2pBtn.addEventListener('click', ()=> setMode(false));
+    modeCpuBtn.addEventListener('click', ()=> setMode(true));
+
+    // difficulty
+    diffEasyBtn.addEventListener('click', ()=> setDifficulty('easy'));
+    diffHardBtn.addEventListener('click', ()=> setDifficulty('hard'));
+
+    // keyboard support: numbers 1-9 map to cells, n for new game, u for undo
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '1' && e.key <= '9'){
+        const idx = Number(e.key) - 1;
+        // if overlay/inputs... simple guard
+        const target = document.activeElement.tagName.toLowerCase();
+        if (target === 'input' || target === 'textarea') return;
+        if (!board[idx] && !gameOver && !(vsComputer && currentPlayer === 'O')){
+          makeMove(idx, currentPlayer, true);
+        }
+      } else if (e.key.toLowerCase() === 'n'){
+        newGame();
+      } else if (e.key.toLowerCase() === 'u'){
+        undoBtn.click();
+      }
+    });
+
+    // initialize UI
+    setMode(false);
+    setDifficulty('easy');
+    updateScores();
+    renderBoard();
+
+    // small UX: if user chooses Vs Computer, computer will play only after player (X) moves.
+    // Ensure the Human always plays 'X' and Computer 'O' to keep logic consistent.
+
+    // Expose a simple function to allow embedding tests or auto-play (optional)
+    window.__ttt = {
+      newGame, makeMove: (i) => makeMove(i, currentPlayer), state: () => ({ board: board.slice(), currentPlayer, scores })
+    };
+  </script>
+</body>
+</html>
